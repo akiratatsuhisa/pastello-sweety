@@ -1,0 +1,58 @@
+query Books($filter: BooksFilter) {
+  books(filter: $filter) {
+    id
+    title
+    createdAt
+    updatedAt
+    chapters {
+      id
+      title
+      createdAt
+      createdBy
+    }
+  }
+}
+
+query Book($id: BigInt!) {
+  book(id: $id) {
+    id
+    title
+    createdBy
+    createdAt
+    updatedBy
+    updatedAt
+  }
+}
+
+mutation CreateBook($input: UpsertBookInput!) {
+  createBook(input: $input) {
+    id
+    title
+    createdBy
+    createdAt
+    updatedBy
+    updatedAt
+  }
+}
+
+mutation UpdateBook($id: BigInt!, $input: UpsertBookInput!) {
+  updateBook(id: $id, input: $input) {
+    id
+    title
+    createdBy
+    createdAt
+    updatedBy
+    updatedAt
+  }
+}
+
+mutation DeleteBook($id: BigInt!) {
+  deleteBook(id: $id) {
+    id
+    title
+    createdBy
+    createdAt
+    updatedBy
+    updatedAt
+  }
+}

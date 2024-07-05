@@ -1,0 +1,76 @@
+"""
+Indicates exactly one field must be supplied and this field must not be `null`.
+"""
+directive @oneOf on INPUT_OBJECT
+
+type Book implements BaseNode {
+  id: BigInt!
+  createdBy: String!
+  createdAt: DateTime!
+  updatedBy: String!
+  updatedAt: DateTime!
+  title: String!
+  chapters(filter: ChaptersFilter): [Chapter!]!
+}
+
+interface BaseNode {
+  id: BigInt!
+  createdBy: String!
+  createdAt: DateTime!
+  updatedBy: String!
+  updatedAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+input ChaptersFilter {
+  limit: Int
+  skip: Int
+}
+
+type Chapter implements BaseNode {
+  id: BigInt!
+  createdBy: String!
+  createdAt: DateTime!
+  updatedBy: String!
+  updatedAt: DateTime!
+  title: String!
+  bookId: BigInt!
+  book: Book!
+}
+
+"""
+BigInt custom scalar type
+"""
+scalar BigInt
+
+type Query {
+  books(filter: BooksFilter! = { limit: 50, skip: 0 }): [Book!]!
+  book(id: BigInt!): Book!
+}
+
+input BooksFilter {
+  limit: Int = 50
+  skip: Int = 0
+}
+
+type Mutation {
+  createBook(input: UpsertBookInput!): Book!
+  updateBook(id: BigInt!, input: UpsertBookInput!): Book!
+  deleteBook(id: BigInt!): Book!
+  createChapter(input: UpsertChapterInput!): Chapter!
+  updateChapter(id: BigInt!, input: UpsertChapterInput!): Chapter!
+  deleteChapter(id: BigInt!): Chapter!
+}
+
+input UpsertBookInput {
+  title: String!
+}
+
+input UpsertChapterInput {
+  title: String!
+  bookId: BigInt!
+}

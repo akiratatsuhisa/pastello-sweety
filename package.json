@@ -1,0 +1,17 @@
+{
+  "packageManager": "yarn@4.3.1",
+  "scripts": {
+    "fix": "cd apps/client && yarn format && yarn lint && cd ../server && yarn format && yarn lint",
+    "build-packages": "cd packages/utils && yarn build",
+    "kill": "npx kill-port 5500"
+  },
+  "workspaces": [
+    "apps/client",
+    "apps/server",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "kill-port": "^2.0.1",
+    "tsx": "^4.16.2"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "utils",
+  "packageManager": "yarn@4.3.1",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "keywords": [
+    "utils"
+  ],
+  "scripts": {
+    "build": "rimraf lib && tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3"
+  }
+}

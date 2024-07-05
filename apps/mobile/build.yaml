@@ -1,0 +1,14 @@
+# build.yaml
+
+targets:
+  $default:
+    builders:
+      graphql_codegen:
+        options:
+          clients:
+            - graphql_flutter
+          scalars:
+            ISODateTime:
+              type: String
+            BigInt:
+              type: String
