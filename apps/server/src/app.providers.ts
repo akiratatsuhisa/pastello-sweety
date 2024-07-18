@@ -12,10 +12,10 @@ export const appProviders: Array<Provider> = [
   },
   {
     provide: APP_GUARD,
-    useClass: RolesGuard,
+    useClass: PermissionsGuard,
   },
   {
     provide: APP_GUARD,
-    useClass: PermissionsGuard,
+    useClass: RolesGuard,
   },
 ];

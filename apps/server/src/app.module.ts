@@ -5,10 +5,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { appProviders } from 'src/app.providers';
+import { AppResolver } from 'src/app.resolver';
 import { AuthModule } from 'src/auth/auth.module';
 
-import { BooksModule } from './books/books.module';
-import { ChaptersModule } from './chapters/chapters.module';
 import { DataLoaderModule } from './data-loader/data-loader.module';
 import { DrizzleModule } from './drizzle/drizzle.module';
 
@@ -25,9 +24,7 @@ import { DrizzleModule } from './drizzle/drizzle.module';
     DrizzleModule,
     AuthModule,
     DataLoaderModule,
-    BooksModule,
-    ChaptersModule,
   ],
-  providers: [...appProviders],
+  providers: [...appProviders, AppResolver],
 })
 export class AppModule {}

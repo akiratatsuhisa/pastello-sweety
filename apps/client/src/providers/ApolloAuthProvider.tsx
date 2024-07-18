@@ -15,6 +15,8 @@ interface IApolloAuthProviderProps {
   children?: ReactNode;
 }
 
+const unauthOperations: Array<string> = ['Ping'];
+
 export const ApolloAuthProvider: FC<IApolloAuthProviderProps> = ({
   children,
 }) => {
@@ -25,11 +27,16 @@ export const ApolloAuthProvider: FC<IApolloAuthProviderProps> = ({
     uri: import.meta.env.VITE_API_URL,
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const authLink = setContext(async (_: any, { headers, ...rest }: any) => {
+  const authLink = setContext(async (operation, prevContext) => {
+    if (unauthOperations.includes(operation.operationName ?? '')) {
+      return prevContext;
+    }
+
     const token = await getAccessTokenSilently().catch(() =>
       navigate('/not-logged'),
     );
+
+    const { headers, ...rest } = prevContext;
 
     return {
       ...rest,

@@ -1,8 +1,8 @@
 {
   "packageManager": "yarn@4.3.1",
   "scripts": {
-    "fix": "cd apps/client && yarn format && yarn lint && cd ../server && yarn format && yarn lint",
-    "build-packages": "cd packages/utils && yarn build",
+    "fix": "yarn workspace client format && yarn workspace client lint && yarn workspace server format && yarn workspace server lint",
+    "build-packages": "yarn workspace utils build",
     "kill": "npx kill-port 5500"
   },
   "workspaces": [

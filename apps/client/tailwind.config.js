@@ -1,4 +1,8 @@
 /** @type {import('tailwindcss').Config} */
+
+const colorNames =
+  'remy|perano|vanilla|linen|madang|riptide|spray|anakiwa|perfume|french-lilac|cosmos|karry|lemon-chiffon';
+
 export default {
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
   theme: {
@@ -193,5 +197,23 @@ export default {
       },
     },
   },
+  safelist: [
+    {
+      pattern: new RegExp(`^text-(${colorNames})-\\d+$`),
+    },
+    {
+      pattern: new RegExp(`^bg-(${colorNames})-\\d+$`),
+    },
+    {
+      pattern: new RegExp(
+        `^border(-(x|y|s|e|t|b|l|r))?-(${colorNames})-\\d+$`,
+      ),
+    },
+    {
+      pattern: new RegExp(
+        `^(ring|outline)-(${colorNames})-\\d+$`,
+      ),
+    },
+  ],
   plugins: [],
 };
