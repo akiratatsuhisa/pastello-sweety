@@ -14,12 +14,35 @@ export class CommentsService {
     private readonly dataLoaderService: DataLoaderService,
   ) {}
 
+  async loadCommentById(id: bigint) {
+    const dataLoader = this.dataLoaderService.getDataLoader<
+      FilterProps,
+      bigint,
+      Comment
+    >({ __key: 'loadCommentById' }, async (keys) => {
+      const result = await this.drizzleService.db
+        .select()
+        .from(comments)
+        .where(inArray(comments.id, [...keys]))
+        .execute();
+
+      const mapResult = result.reduce((map, result) => {
+        map.set(result.id, result as Comment);
+        return map;
+      }, new Map<bigint, Comment>());
+
+      return keys.map((key) => mapResult.get(key));
+    });
+
+    return dataLoader.load(id);
+  }
+
   async loadCommentsByTagId(tagId: bigint) {
     const dataLoader = this.dataLoaderService.getDataLoader<
       FilterProps,
       bigint,
       Array<Comment>
-    >({ __key: `comments:tag` }, async (keys) => {
+    >({ __key: 'loadCommentsByTagId' }, async (keys) => {
       const result = await this.drizzleService.db
         .select({
           id: comments.id,
@@ -40,16 +63,39 @@ export class CommentsService {
             eq(tagRelationships.entityId, comments.id),
           ),
         )
-        .where(inArray(tagRelationships.tagId, [...keys]));
+        .where(inArray(tagRelationships.tagId, [...keys]))
+        .execute();
 
       return keys.map(
         (key) =>
           result.filter(
-            (post) => post.tagId === key,
+            (comment) => comment.tagId === key,
           ) as unknown as Array<Comment>,
       );
     });
 
     return dataLoader.load(tagId);
+  }
+
+  async loadCommentsByPostId(postId: bigint) {
+    const dataLoader = this.dataLoaderService.getDataLoader<
+      FilterProps,
+      bigint,
+      Array<Comment>
+    >({ __key: 'loadCommentsByPostId' }, async (keys) => {
+      const result = await this.drizzleService.db
+        .select()
+        .from(comments)
+        .execute();
+
+      return keys.map(
+        (key) =>
+          result.filter(
+            (comment) => comment.postId === key,
+          ) as unknown as Array<Comment>,
+      );
+    });
+
+    return dataLoader.load(postId);
   }
 }

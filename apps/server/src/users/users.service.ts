@@ -29,7 +29,7 @@ export class UsersService {
       FilterProps,
       string,
       User
-    >({ __key: 'user' }, async (keys) => {
+    >({ __key: 'loadUserById' }, async (keys) => {
       const chunkResult = await Promise.all(
         _.chunk(keys, LIMIT).map(async (userIds) => {
           const res = await this.management.users.getAll({

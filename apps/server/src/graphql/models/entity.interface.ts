@@ -17,4 +17,15 @@ export abstract class Entity {
 export const EntityUnion = createUnionType({
   name: 'EntityUnion',
   types: () => [Post, Comment] as const,
+  resolveType(value) {
+    if (value.title) {
+      return Post;
+    }
+
+    if (value.content) {
+      return Comment;
+    }
+
+    return null;
+  },
 });
