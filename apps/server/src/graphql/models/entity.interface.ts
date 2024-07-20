@@ -7,11 +7,11 @@ import { EntityName } from './entity-name.enum';
 
 @InterfaceType()
 export abstract class Entity {
-  @Field(() => BigIntScalar)
-  entityId: bigint;
-
   @Field(() => EntityName)
   entityName: EntityName;
+
+  @Field(() => BigIntScalar)
+  entityId: bigint;
 }
 
 export const EntityUnion = createUnionType({

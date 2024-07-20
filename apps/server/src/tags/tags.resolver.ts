@@ -1,4 +1,4 @@
-import { forwardRef, Inject } from '@nestjs/common';
+import { forwardRef, Inject, Post } from '@nestjs/common';
 import {
   Args,
   Mutation,
@@ -9,14 +9,21 @@ import {
 } from '@nestjs/graphql';
 import { IdentityUser, User } from 'src/auth/decorators';
 import { CommentsService } from 'src/comments/comments.service';
-import { EntityName } from 'src/graphql/models';
+import { Comment } from 'src/comments/types';
 import { BigIntScalar } from 'src/graphql/scalars';
 import { PostsService } from 'src/posts/posts.service';
 import { Auth0User } from 'src/users/types';
 import { UsersService } from 'src/users/users.service';
 
 import { TagsService } from './tags.service';
-import { CreateTag, Tag, TagRelation, UpdateTag } from './types';
+import {
+  AddTag,
+  CreateTag,
+  RemoveTag,
+  Tag,
+  TagRelation,
+  UpdateTag,
+} from './types';
 
 @Resolver(() => Tag)
 export class TagsResolver {
@@ -40,12 +47,12 @@ export class TagsResolver {
     return this.usersService.loadUserById(parent.updatedBy);
   }
 
-  @ResolveField(() => Auth0User)
+  @ResolveField(() => [Post])
   async posts(@Parent() parent: Tag) {
     return this.postsService.loadPostsByTagId(parent.id);
   }
 
-  @ResolveField(() => Auth0User)
+  @ResolveField(() => [Comment])
   async comments(@Parent() parent: Tag) {
     return this.commentsService.loadCommentsByTagId(parent.id);
   }
@@ -80,21 +87,12 @@ export class TagsResolver {
   }
 
   @Mutation(() => TagRelation)
-  async addTag(
-    @Args('entityName', { type: () => EntityName }) entityName: EntityName,
-    @Args('entityId', { type: () => BigIntScalar }) entityId: bigint,
-    @Args('tagId', { type: () => BigIntScalar }) tagId: bigint,
-    @User() user: IdentityUser,
-  ) {
-    return this.tagsService.add(entityName, entityId, tagId, user);
+  async addTag(@Args() args: AddTag, @User() user: IdentityUser) {
+    return this.tagsService.add(args, user);
   }
 
   @Mutation(() => TagRelation)
-  async removeTag(
-    @Args('entityName', { type: () => EntityName }) entityName: EntityName,
-    @Args('entityId', { type: () => BigIntScalar }) entityId: bigint,
-    @Args('tagId', { type: () => BigIntScalar }) tagId: bigint,
-  ) {
-    return this.tagsService.remove(entityName, entityId, tagId);
+  async removeTag(@Args() args: RemoveTag) {
+    return this.tagsService.remove(args);
   }
 }

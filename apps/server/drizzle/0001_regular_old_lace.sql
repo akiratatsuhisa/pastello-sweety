@@ -1,0 +1,2 @@
+ALTER TABLE "reactions" DROP CONSTRAINT "reactions_entity_name_entity_id_unique";--> statement-breakpoint
+ALTER TABLE "reactions" ADD CONSTRAINT "reactions_entity_name_entity_id_created_by_unique" UNIQUE("entity_name","entity_id","created_by");

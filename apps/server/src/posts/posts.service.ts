@@ -69,10 +69,16 @@ export class PostsService {
         .where(inArray(tagRelationships.tagId, [...keys]))
         .execute();
 
-      return keys.map(
-        (key) =>
-          result.filter((post) => post.tagId === key) as unknown as Array<Post>,
-      );
+      const mapResult = result.reduce((map, result) => {
+        if (map.has(result.tagId)) {
+          map.get(result.tagId).push(result as unknown as Post);
+        } else {
+          map.set(result.tagId, [result as unknown as Post]);
+        }
+        return map;
+      }, new Map<bigint, Array<Post>>());
+
+      return keys.map((key) => mapResult.get(key));
     });
 
     return dataLoader.load(tagId);
@@ -120,7 +126,7 @@ export class PostsService {
       .update(posts)
       .set({
         ...data,
-        ...this.drizzleService.uppdateFields(user),
+        ...this.drizzleService.updatedFields(user),
       })
       .where(eq(posts.id, id))
       .returning()

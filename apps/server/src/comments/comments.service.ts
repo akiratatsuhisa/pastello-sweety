@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { DataLoaderService } from 'src/data-loader/data-loader.service';
 import { FilterProps } from 'src/data-loader/data-loader.types';
 import { DrizzleService } from 'src/drizzle/drizzle.service';
@@ -66,12 +66,16 @@ export class CommentsService {
         .where(inArray(tagRelationships.tagId, [...keys]))
         .execute();
 
-      return keys.map(
-        (key) =>
-          result.filter(
-            (comment) => comment.tagId === key,
-          ) as unknown as Array<Comment>,
-      );
+      const mapResult = result.reduce((map, result) => {
+        if (map.has(result.tagId)) {
+          map.get(result.tagId).push(result as unknown as Comment);
+        } else {
+          map.set(result.tagId, [result as unknown as Comment]);
+        }
+        return map;
+      }, new Map<bigint, Array<Comment>>());
+
+      return keys.map((key) => mapResult.get(key));
     });
 
     return dataLoader.load(tagId);
@@ -86,14 +90,21 @@ export class CommentsService {
       const result = await this.drizzleService.db
         .select()
         .from(comments)
+        .where(
+          and(isNull(comments.parentId), inArray(comments.postId, [...keys])),
+        )
         .execute();
 
-      return keys.map(
-        (key) =>
-          result.filter(
-            (comment) => comment.postId === key,
-          ) as unknown as Array<Comment>,
-      );
+      const mapResult = result.reduce((map, result) => {
+        if (map.has(result.postId)) {
+          map.get(result.postId).push(result as Comment);
+        } else {
+          map.set(result.postId, [result as Comment]);
+        }
+        return map;
+      }, new Map<bigint, Array<Comment>>());
+
+      return keys.map((key) => mapResult.get(key));
     });
 
     return dataLoader.load(postId);

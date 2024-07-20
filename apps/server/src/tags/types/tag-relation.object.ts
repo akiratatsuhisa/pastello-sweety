@@ -12,9 +12,9 @@ import { User } from 'src/users/types';
 export class TagRelation implements BaseNode, Entity {
   id: bigint;
 
-  entityId: bigint;
-
   entityName: EntityName;
+
+  entityId: bigint;
 
   @Field(() => EntityUnion)
   entity: Post | Comment;

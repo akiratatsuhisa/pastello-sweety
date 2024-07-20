@@ -1,4 +1,4 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Comment } from 'src/comments/types';
 import { BaseNode, EntityName } from 'src/graphql/models';
 import { Entity, EntityUnion } from 'src/graphql/models/entity.interface';
@@ -13,14 +13,14 @@ import { Type } from './type.enum';
 export class Reaction implements BaseNode, Entity {
   id: bigint;
 
-  entityId: bigint;
-
   entityName: EntityName;
+
+  entityId: bigint;
 
   @Field(() => EntityUnion)
   entity: Post | Comment;
 
-  @Field(() => Number, { nullable: true })
+  @Field(() => Int, { nullable: true })
   rating?: number;
 
   @Field(() => Type, { nullable: true })

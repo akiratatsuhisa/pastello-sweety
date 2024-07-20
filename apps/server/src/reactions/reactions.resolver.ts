@@ -1,10 +1,21 @@
 import { forwardRef, Inject } from '@nestjs/common';
-import { Query, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  Mutation,
+  Parent,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
+import { IdentityUser, User } from 'src/auth/decorators';
 import { CommentsService } from 'src/comments/comments.service';
+import { EntityName } from 'src/graphql/models';
+import { EntityUnion } from 'src/graphql/models/entity.interface';
 import { PostsService } from 'src/posts/posts.service';
+import { Auth0User } from 'src/users/types';
+import { UsersService } from 'src/users/users.service';
 
 import { ReactionsService } from './reactions.service';
-import { Reaction } from './types';
+import { DeleteReaction, Reaction, UpsertReaction } from './types';
 
 @Resolver(() => Reaction)
 export class ReactionsResolver {
@@ -14,8 +25,45 @@ export class ReactionsResolver {
     private readonly postsService: PostsService,
     @Inject(forwardRef(() => CommentsService))
     private readonly commentsService: CommentsService,
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
   ) {}
 
-  @Query(() => Reaction)
-  async reaction() {}
+  @ResolveField(() => Auth0User)
+  async createdUser(@Parent() parent: Reaction) {
+    return this.usersService.loadUserById(parent.createdBy);
+  }
+
+  @ResolveField(() => Auth0User)
+  async updatedUser(@Parent() parent: Reaction) {
+    return this.usersService.loadUserById(parent.updatedBy);
+  }
+
+  @ResolveField(() => EntityUnion)
+  async entity(@Parent() parent: Reaction) {
+    switch (parent.entityName) {
+      case EntityName.POST:
+        return this.postsService.loadPostById(parent.entityId);
+      case EntityName.COMMENT:
+        return this.commentsService.loadCommentById(parent.entityId);
+      default:
+        return null;
+    }
+  }
+
+  @Mutation(() => Reaction)
+  async upsertReaction(
+    @Args() args: UpsertReaction,
+    @User() user: IdentityUser,
+  ) {
+    return this.reactionsService.upsert(args, user);
+  }
+
+  @Mutation(() => Reaction)
+  async deleteReaction(
+    @Args() args: DeleteReaction,
+    @User() user: IdentityUser,
+  ) {
+    return this.reactionsService.delete(args, user);
+  }
 }

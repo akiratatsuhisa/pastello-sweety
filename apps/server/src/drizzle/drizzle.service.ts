@@ -36,7 +36,7 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  uppdateFields(user: IdentityUser) {
+  updatedFields(user: IdentityUser) {
     const date = new Date();
 
     return {

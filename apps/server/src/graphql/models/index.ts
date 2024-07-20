@@ -1,3 +1,3 @@
 export * from './base-node.interface';
 export * from './entity-name.enum';
-export * from './pagination.input';
+export * from './pagination.args';

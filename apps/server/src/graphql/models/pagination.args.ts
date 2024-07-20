@@ -1,4 +1,4 @@
-import { Field, InputType, Int } from '@nestjs/graphql';
+import { ArgsType, Field, Int } from '@nestjs/graphql';
 import { Transform } from 'class-transformer';
 import { IsOptional, Max, Min } from 'class-validator';
 
@@ -7,7 +7,7 @@ export const paginationFilterDefault: PaginationFilter = {
   skip: 0,
 };
 
-@InputType()
+@ArgsType()
 export class PaginationFilter {
   @Transform(({ value }) => value ?? paginationFilterDefault.limit)
   @Max(100)

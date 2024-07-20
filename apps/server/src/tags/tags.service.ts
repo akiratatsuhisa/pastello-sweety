@@ -4,10 +4,9 @@ import { IdentityUser } from 'src/auth/identity.class';
 import { DataLoaderService } from 'src/data-loader/data-loader.service';
 import { FilterProps } from 'src/data-loader/data-loader.types';
 import { DrizzleService } from 'src/drizzle/drizzle.service';
-import { EntityName } from 'src/graphql/models';
 import { tagRelationships, tags } from 'src/schema';
 
-import { CreateTag, Tag, UpdateTag } from './types';
+import { AddTag, CreateTag, RemoveTag, Tag, UpdateTag } from './types';
 
 @Injectable()
 export class TagsService {
@@ -42,10 +41,16 @@ export class TagsService {
         )
         .execute();
 
-      return keys.map(
-        (key) =>
-          result.filter((tag) => tag.postId === key) as unknown as Array<Tag>,
-      );
+      const mapResult = result.reduce((map, result) => {
+        if (map.has(result.postId)) {
+          map.get(result.postId).push(result as unknown as Tag);
+        } else {
+          map.set(result.postId, [result as unknown as Tag]);
+        }
+        return map;
+      }, new Map<bigint, Array<Tag>>());
+
+      return keys.map((key) => mapResult.get(key));
     });
 
     return dataLoader.load(postId);
@@ -93,7 +98,7 @@ export class TagsService {
       .update(tags)
       .set({
         ...data,
-        ...this.drizzleService.uppdateFields(user),
+        ...this.drizzleService.updatedFields(user),
       })
       .where(eq(tags.id, id))
       .returning()
@@ -112,18 +117,11 @@ export class TagsService {
     return result;
   }
 
-  async add(
-    entityName: EntityName,
-    entityId: bigint,
-    tagId: bigint,
-    user: IdentityUser,
-  ) {
+  async add(data: AddTag, user: IdentityUser) {
     const [result] = await this.drizzleService.db
       .insert(tagRelationships)
       .values({
-        entityName,
-        entityId,
-        tagId,
+        ...data,
         ...this.drizzleService.createFields(user),
       })
       .returning()
@@ -132,14 +130,14 @@ export class TagsService {
     return result;
   }
 
-  async remove(entityName: EntityName, entityId: bigint, tagId: bigint) {
+  async remove(data: RemoveTag) {
     const [result] = await this.drizzleService.db
       .delete(tagRelationships)
       .where(
         and(
-          eq(tagRelationships.entityName, entityName),
-          eq(tagRelationships.entityId, entityId),
-          eq(tagRelationships.tagId, tagId),
+          eq(tagRelationships.entityName, data.entityName),
+          eq(tagRelationships.entityId, data.entityId),
+          eq(tagRelationships.tagId, data.tagId),
         ),
       )
       .returning()
