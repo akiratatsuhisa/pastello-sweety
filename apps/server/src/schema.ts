@@ -20,7 +20,7 @@ const commonFields = {
 
 export const tags = pgTable('tags', {
   id: bigserial('id', { mode: 'bigint' }).primaryKey(),
-  name: varchar('name', { length: 256 }).notNull(),
+  name: varchar('name', { length: 256 }).notNull().unique(),
   ...commonFields,
 });
 
@@ -29,10 +29,10 @@ export const posts = pgTable('posts', {
   type: varchar('type', { enum: ['compact', 'standard', 'photos'] })
     .notNull()
     .default('standard'),
-  title: varchar('title', { length: 256 }),
+  title: varchar('title', { length: 256 }).notNull(),
   description: varchar('description', { length: 1024 }),
   content: text('content'),
-  isPublish: boolean('is_publish').notNull(),
+  isPublish: boolean('is_publish').notNull().default(false),
 
   ...commonFields,
 });
@@ -41,9 +41,10 @@ export const comments = pgTable('comments', {
   id: bigserial('id', { mode: 'bigint' }).primaryKey(),
   postId: bigint('book_id', { mode: 'bigint' })
     .notNull()
-    .references(() => posts.id),
+    .references(() => posts.id, { onUpdate: 'cascade', onDelete: 'cascade' }),
   parentId: bigint('book_id', { mode: 'bigint' }).references(
     (): AnyPgColumn => comments.id,
+    { onUpdate: 'cascade', onDelete: 'cascade' },
   ),
 
   content: text('content').notNull(),
@@ -82,11 +83,12 @@ export const tagRelationships = pgTable(
     entityName: varchar('entity_name', {
       enum: ['post', 'comment'],
     }).notNull(),
+    tagId: bigint('tag_id', { mode: 'bigint' }).notNull(),
     ...commonFields,
   },
   (table) => {
     return {
-      uniqueEntity: unique().on(table.entityName, table.entityId),
+      uniqueEntity: unique().on(table.entityName, table.entityId, table.tagId),
     };
   },
 );

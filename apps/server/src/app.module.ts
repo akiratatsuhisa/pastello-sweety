@@ -8,8 +8,13 @@ import { appProviders } from 'src/app.providers';
 import { AppResolver } from 'src/app.resolver';
 import { AuthModule } from 'src/auth/auth.module';
 
+import { CommentsModule } from './comments/comments.module';
 import { DataLoaderModule } from './data-loader/data-loader.module';
 import { DrizzleModule } from './drizzle/drizzle.module';
+import { PostsModule } from './posts/posts.module';
+import { ReactionsModule } from './reactions/reactions.module';
+import { TagsModule } from './tags/tags.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -24,6 +29,11 @@ import { DrizzleModule } from './drizzle/drizzle.module';
     DrizzleModule,
     AuthModule,
     DataLoaderModule,
+    TagsModule,
+    PostsModule,
+    CommentsModule,
+    ReactionsModule,
+    UsersModule,
   ],
   providers: [...appProviders, AppResolver],
 })

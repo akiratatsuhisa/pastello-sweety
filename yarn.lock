@@ -4041,6 +4041,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/lodash@npm:^4.17.7":
+  version: 4.17.7
+  resolution: "@types/lodash@npm:4.17.7"
+  checksum: 10c0/40c965b5ffdcf7ff5c9105307ee08b782da228c01b5c0529122c554c64f6b7168fc8f11dc79aa7bae4e67e17efafaba685dc3a47e294dbf52a65ed2b67100561
+  languageName: node
+  linkType: hard
+
 "@types/long@npm:^4.0.0":
   version: 4.0.2
   resolution: "@types/long@npm:4.0.2"
@@ -5048,6 +5055,17 @@ __metadata:
   version: 0.4.0
   resolution: "asynckit@npm:0.4.0"
   checksum: 10c0/d73e2ddf20c4eb9337e1b3df1a0f6159481050a5de457c55b14ea2e5cb6d90bb69e004c9af54737a5ee0917fcf2c9e25de67777bbe58261847846066ba75bc9d
+  languageName: node
+  linkType: hard
+
+"auth0@npm:^4.7.0":
+  version: 4.7.0
+  resolution: "auth0@npm:4.7.0"
+  dependencies:
+    jose: "npm:^4.13.2"
+    undici-types: "npm:^6.15.0"
+    uuid: "npm:^9.0.0"
+  checksum: 10c0/88170b982e81ae5983c5190d759c7b58a8da24cfa6c94ffc0ea6119496bd32726a34fb4a0ee85a885fbdf505d09430900b35c2d237473655a8d91508fe906661
   languageName: node
   linkType: hard
 
@@ -9194,7 +9212,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jose@npm:^4.14.6":
+"jose@npm:^4.13.2, jose@npm:^4.14.6":
   version: 4.15.9
   resolution: "jose@npm:4.15.9"
   checksum: 10c0/4ed4ddf4a029db04bd167f2215f65d7245e4dc5f36d7ac3c0126aab38d66309a9e692f52df88975d99429e357e5fd8bab340ff20baab544d17684dd1d940a0f4
@@ -11810,6 +11828,7 @@ __metadata:
     "@nestjs/testing": "npm:^10.0.0"
     "@types/express": "npm:^4.17.17"
     "@types/jest": "npm:^29.5.2"
+    "@types/lodash": "npm:^4.17.7"
     "@types/node": "npm:^20.3.1"
     "@types/passport": "npm:^0"
     "@types/passport-jwt": "npm:^4.0.1"
@@ -11817,6 +11836,7 @@ __metadata:
     "@types/supertest": "npm:^6.0.0"
     "@typescript-eslint/eslint-plugin": "npm:^7.0.0"
     "@typescript-eslint/parser": "npm:^7.0.0"
+    auth0: "npm:^4.7.0"
     axios: "npm:^1.7.2"
     cache-manager: "npm:^5.7.1"
     class-transformer: "npm:^0.5.1"
@@ -11833,6 +11853,7 @@ __metadata:
     graphql: "npm:^16.9.0"
     jest: "npm:^29.5.0"
     jwks-rsa: "npm:^3.1.0"
+    lodash: "npm:^4.17.21"
     passport: "npm:^0.7.0"
     passport-jwt: "npm:^4.0.1"
     pg: "npm:^8.12.0"
@@ -12974,6 +12995,13 @@ __metadata:
   version: 0.1.2
   resolution: "unc-path-regex@npm:0.1.2"
   checksum: 10c0/bf9c781c4e2f38e6613ea17a51072e4b416840fbe6eeb244597ce9b028fac2fb6cfd3dde1f14111b02c245e665dc461aab8168ecc30b14364d02caa37f812996
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:^6.15.0":
+  version: 6.19.2
+  resolution: "undici-types@npm:6.19.2"
+  checksum: 10c0/cbd8e40550b077860d6cdcb54e30c11be2583e05df6f5298c91a9c7f2da1870f18d45a3b632585428679688d5cc0f4dea20710988be2e756e814772ee965c58b
   languageName: node
   linkType: hard
 

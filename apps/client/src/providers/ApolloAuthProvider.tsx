@@ -33,7 +33,7 @@ export const ApolloAuthProvider: FC<IApolloAuthProviderProps> = ({
     }
 
     const token = await getAccessTokenSilently().catch(() =>
-      navigate('/not-logged'),
+      navigate('/not-logged', { replace: true }),
     );
 
     const { headers, ...rest } = prevContext;
