@@ -11,6 +11,7 @@ import { User } from 'src/auth/decorators';
 import { IdentityUser } from 'src/auth/identity.class';
 import { CommentsService } from 'src/comments/comments.service';
 import { Comment } from 'src/comments/types';
+import { EntityName } from 'src/graphql/models';
 import { BigIntScalar } from 'src/graphql/scalars';
 import { ReactionsService } from 'src/reactions/reactions.service';
 import { Reaction } from 'src/reactions/types';
@@ -53,12 +54,15 @@ export class PostsResolver {
 
   @ResolveField(() => [Tag])
   async tags(@Parent() parent: Post) {
-    return this.tagsService.loadTagsByPostId(parent.id);
+    return this.tagsService.loadTagsByEntityId(EntityName.POST, parent.id);
   }
 
   @ResolveField(() => [Reaction])
   async reactions(@Parent() parent: Post) {
-    return this.reactionsService.loadRectionsByPostId(parent.id);
+    return this.reactionsService.loadRectionsByEntityId(
+      EntityName.POST,
+      parent.id,
+    );
   }
 
   @Query(() => [Post])

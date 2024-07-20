@@ -16,18 +16,18 @@ export class ReactionsService {
     private readonly dataLoaderService: DataLoaderService,
   ) {}
 
-  async loadRectionsByPostId(postId: bigint) {
+  async loadRectionsByEntityId(enityName: EntityName, entityId: bigint) {
     const dataLoader = this.dataLoaderService.getDataLoader<
       FilterProps,
       bigint,
       Array<Reaction>
-    >({ __key: 'loadRectionsByPostId' }, async (keys) => {
+    >({ __key: `loadRectionsByEntityId:${enityName}` }, async (keys) => {
       const result = await this.drizzleService.db
         .select()
         .from(reactions)
         .where(
           and(
-            eq(reactions.entityName, 'post'),
+            eq(reactions.entityName, enityName),
             inArray(reactions.entityId, [...keys]),
           ),
         )
@@ -45,7 +45,7 @@ export class ReactionsService {
       return keys.map((key) => mapResult.get(key));
     });
 
-    return dataLoader.load(postId);
+    return dataLoader.load(entityId);
   }
 
   async upsert(data: UpsertReaction, user: IdentityUser) {

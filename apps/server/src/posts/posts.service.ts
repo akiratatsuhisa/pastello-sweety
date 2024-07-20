@@ -4,6 +4,7 @@ import { IdentityUser } from 'src/auth/identity.class';
 import { DataLoaderService } from 'src/data-loader/data-loader.service';
 import { FilterProps } from 'src/data-loader/data-loader.types';
 import { DrizzleService } from 'src/drizzle/drizzle.service';
+import { EntityName } from 'src/graphql/models';
 import { posts, tagRelationships } from 'src/schema';
 
 import { CreatePost, Post, UpdatePost } from './types';
@@ -62,7 +63,7 @@ export class PostsService {
         .leftJoin(
           tagRelationships,
           and(
-            eq(tagRelationships.entityName, 'post'),
+            eq(tagRelationships.entityName, EntityName.POST),
             eq(tagRelationships.entityId, posts.id),
           ),
         )

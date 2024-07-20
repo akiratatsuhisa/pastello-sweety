@@ -4,6 +4,7 @@ import { IdentityUser } from 'src/auth/identity.class';
 import { DataLoaderService } from 'src/data-loader/data-loader.service';
 import { FilterProps } from 'src/data-loader/data-loader.types';
 import { DrizzleService } from 'src/drizzle/drizzle.service';
+import { EntityName } from 'src/graphql/models';
 import { tagRelationships, tags } from 'src/schema';
 
 import { AddTag, CreateTag, RemoveTag, Tag, UpdateTag } from './types';
@@ -15,12 +16,12 @@ export class TagsService {
     private readonly dataLoaderService: DataLoaderService,
   ) {}
 
-  async loadTagsByPostId(postId: bigint) {
+  async loadTagsByEntityId(enityName: EntityName, entityId: bigint) {
     const dataLoader = this.dataLoaderService.getDataLoader<
       FilterProps,
       bigint,
       Array<Tag>
-    >({ __key: 'loadTagsByPostId' }, async (keys) => {
+    >({ __key: `loadTagsByEntityId:${enityName}` }, async (keys) => {
       const result = await this.drizzleService.db
         .select({
           id: tags.id,
@@ -29,23 +30,23 @@ export class TagsService {
           createdAt: tags.createdAt,
           updatedBy: tags.updatedBy,
           updatedAt: tags.updatedAt,
-          postId: tagRelationships.entityId,
+          entityId: tagRelationships.entityId,
         })
         .from(tags)
         .leftJoin(tagRelationships, eq(tagRelationships.tagId, tags.id))
         .where(
           and(
-            eq(tagRelationships.entityName, 'post'),
+            eq(tagRelationships.entityName, enityName),
             inArray(tagRelationships.entityId, [...keys]),
           ),
         )
         .execute();
 
       const mapResult = result.reduce((map, result) => {
-        if (map.has(result.postId)) {
-          map.get(result.postId).push(result as unknown as Tag);
+        if (map.has(result.entityId)) {
+          map.get(result.entityId).push(result as unknown as Tag);
         } else {
-          map.set(result.postId, [result as unknown as Tag]);
+          map.set(result.entityId, [result as unknown as Tag]);
         }
         return map;
       }, new Map<bigint, Array<Tag>>());
@@ -53,7 +54,7 @@ export class TagsService {
       return keys.map((key) => mapResult.get(key));
     });
 
-    return dataLoader.load(postId);
+    return dataLoader.load(entityId);
   }
 
   async findAll() {

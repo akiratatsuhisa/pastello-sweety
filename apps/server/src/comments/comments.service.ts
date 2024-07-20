@@ -3,6 +3,7 @@ import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { DataLoaderService } from 'src/data-loader/data-loader.service';
 import { FilterProps } from 'src/data-loader/data-loader.types';
 import { DrizzleService } from 'src/drizzle/drizzle.service';
+import { EntityName } from 'src/graphql/models';
 import { comments, tagRelationships } from 'src/schema';
 
 import { Comment } from './types';
@@ -59,7 +60,7 @@ export class CommentsService {
         .leftJoin(
           tagRelationships,
           and(
-            eq(tagRelationships.entityName, 'comment'),
+            eq(tagRelationships.entityName, EntityName.COMMENT),
             eq(tagRelationships.entityId, comments.id),
           ),
         )
