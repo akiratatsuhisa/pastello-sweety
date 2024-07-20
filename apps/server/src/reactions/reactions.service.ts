@@ -42,7 +42,7 @@ export class ReactionsService {
         return map;
       }, new Map<bigint, Array<Reaction>>());
 
-      return keys.map((key) => mapResult.get(key));
+      return keys.map((key) => mapResult.get(key) ?? []);
     });
 
     return dataLoader.load(entityId);

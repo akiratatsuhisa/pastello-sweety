@@ -1,5 +1,5 @@
 {
-  "id": "b1493395-aba6-4473-a530-051f5d171e1a",
+  "id": "05c8d731-d5b0-412c-85b7-c10a664081bc",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -14,8 +14,14 @@
           "primaryKey": true,
           "notNull": true
         },
-        "book_id": {
-          "name": "book_id",
+        "post_id": {
+          "name": "post_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parent_id": {
+          "name": "parent_id",
           "type": "bigint",
           "primaryKey": false,
           "notNull": false
@@ -53,12 +59,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "comments_book_id_posts_id_fk": {
-          "name": "comments_book_id_posts_id_fk",
+        "comments_post_id_posts_id_fk": {
+          "name": "comments_post_id_posts_id_fk",
           "tableFrom": "comments",
           "tableTo": "posts",
           "columnsFrom": [
-            "book_id"
+            "post_id"
           ],
           "columnsTo": [
             "id"
@@ -66,12 +72,12 @@
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
-        "comments_book_id_comments_id_fk": {
-          "name": "comments_book_id_comments_id_fk",
+        "comments_parent_id_comments_id_fk": {
+          "name": "comments_parent_id_comments_id_fk",
           "tableFrom": "comments",
           "tableTo": "comments",
           "columnsFrom": [
-            "book_id"
+            "parent_id"
           ],
           "columnsTo": [
             "id"
@@ -165,15 +171,15 @@
           "primaryKey": true,
           "notNull": true
         },
-        "entity_id": {
-          "name": "entity_id",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        },
         "entity_name": {
           "name": "entity_name",
           "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "bigint",
           "primaryKey": false,
           "notNull": true
         },
@@ -218,12 +224,13 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "reactions_entity_name_entity_id_unique": {
-          "name": "reactions_entity_name_entity_id_unique",
+        "reactions_entity_name_entity_id_created_by_unique": {
+          "name": "reactions_entity_name_entity_id_created_by_unique",
           "nullsNotDistinct": false,
           "columns": [
             "entity_name",
-            "entity_id"
+            "entity_id",
+            "created_by"
           ]
         }
       }
@@ -238,15 +245,15 @@
           "primaryKey": true,
           "notNull": true
         },
-        "entity_id": {
-          "name": "entity_id",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        },
         "entity_name": {
           "name": "entity_name",
           "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "bigint",
           "primaryKey": false,
           "notNull": true
         },

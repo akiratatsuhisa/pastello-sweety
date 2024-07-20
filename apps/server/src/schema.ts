@@ -43,11 +43,11 @@ export const posts = pgTable('posts', {
 export const comments = pgTable('comments', {
   id: bigserial('id', { mode: 'bigint' }).primaryKey(),
 
-  postId: bigint('book_id', { mode: 'bigint' })
+  postId: bigint('post_id', { mode: 'bigint' })
     .notNull()
     .references(() => posts.id, { onUpdate: 'cascade', onDelete: 'cascade' }),
 
-  parentId: bigint('book_id', { mode: 'bigint' }).references(
+  parentId: bigint('parent_id', { mode: 'bigint' }).references(
     (): AnyPgColumn => comments.id,
     { onUpdate: 'cascade', onDelete: 'cascade' },
   ),

@@ -79,7 +79,7 @@ export class PostsService {
         return map;
       }, new Map<bigint, Array<Post>>());
 
-      return keys.map((key) => mapResult.get(key));
+      return keys.map((key) => mapResult.get(key) ?? []);
     });
 
     return dataLoader.load(tagId);

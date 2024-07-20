@@ -7,17 +7,20 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
+import { IdentityUser, User } from 'src/auth/decorators';
 import { EntityName } from 'src/graphql/models';
 import { BigIntScalar } from 'src/graphql/scalars';
 import { PostsService } from 'src/posts/posts.service';
 import { Post } from 'src/posts/types';
 import { ReactionsService } from 'src/reactions/reactions.service';
+import { Reaction } from 'src/reactions/types';
 import { TagsService } from 'src/tags/tags.service';
+import { Tag } from 'src/tags/types';
 import { Auth0User } from 'src/users/types';
 import { UsersService } from 'src/users/users.service';
 
 import { CommentsService } from './comments.service';
-import { Comment } from './types';
+import { Comment, CreateComment, UpdateComment } from './types';
 
 @Resolver(() => Comment)
 export class CommentsResolver {
@@ -48,12 +51,12 @@ export class CommentsResolver {
     return this.postsService.loadPostById(parent.postId);
   }
 
-  @ResolveField(() => Post)
+  @ResolveField(() => Tag)
   async tags(@Parent() parent: Comment) {
     return this.tagsService.loadTagsByEntityId(EntityName.COMMENT, parent.id);
   }
 
-  @ResolveField(() => Post)
+  @ResolveField(() => [Reaction])
   async reactions(@Parent() parent: Comment) {
     return this.reactionsService.loadRectionsByEntityId(
       EntityName.COMMENT,
@@ -61,18 +64,45 @@ export class CommentsResolver {
     );
   }
 
+  @ResolveField(() => Comment, { nullable: true })
+  async parent(@Parent() parent: Comment) {
+    return this.commentsService.loadParent(parent.parentId);
+  }
+
+  @ResolveField(() => [Comment])
+  async children(@Parent() parent: Comment) {
+    return this.commentsService.loadChildren(parent.id);
+  }
+
   @Query(() => [Comment])
-  async comments() {}
+  async comments() {
+    return this.commentsService.findAll();
+  }
 
   @Query(() => Comment)
-  async comment(@Args('id', { type: () => BigIntScalar }) id: bigint) {}
+  async comment(@Args('id', { type: () => BigIntScalar }) id: bigint) {
+    return this.commentsService.findById(id);
+  }
 
   @Mutation(() => Comment)
-  async createComment() {}
+  async createComment(
+    @Args('input') input: CreateComment,
+    @User() user: IdentityUser,
+  ) {
+    return this.commentsService.create(input, user);
+  }
 
   @Mutation(() => Comment)
-  async updateComment() {}
+  async updateComment(
+    @Args('id', { type: () => BigIntScalar }) id: bigint,
+    @Args('input') input: UpdateComment,
+    @User() user: IdentityUser,
+  ) {
+    return this.commentsService.update(id, input, user);
+  }
 
   @Mutation(() => Comment)
-  async deleteComment() {}
+  async deleteComment(@Args('id', { type: () => BigIntScalar }) id: bigint) {
+    return this.commentsService.delete(id);
+  }
 }
