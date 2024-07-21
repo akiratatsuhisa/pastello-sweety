@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, gt, inArray, lte, sql } from 'drizzle-orm';
 import { IdentityUser } from 'src/auth/identity.class';
 import { DataLoaderService } from 'src/data-loader/data-loader.service';
-import { FilterProps } from 'src/data-loader/data-loader.types';
+import { FilterKey, rowNumerAlias } from 'src/data-loader/data-loader.types';
 import { DrizzleService } from 'src/drizzle/drizzle.service';
-import { EntityName } from 'src/graphql/models';
+import { EntityName, PaginationFilter } from 'src/graphql/models';
 import { posts, tagRelationships } from 'src/schema';
 
 import { CreatePost, Post, UpdatePost } from './types';
@@ -18,7 +18,7 @@ export class PostsService {
 
   async loadPostById(id: bigint) {
     const dataLoader = this.dataLoaderService.getDataLoader<
-      FilterProps,
+      FilterKey,
       bigint,
       Post
     >({ __key: 'loadPostById' }, async (keys) => {
@@ -39,35 +39,52 @@ export class PostsService {
     return dataLoader.load(id);
   }
 
-  async loadPostsByTagId(tagId: bigint) {
+  async loadPostsByTagId(tagId: bigint, filter: PaginationFilter) {
     const dataLoader = this.dataLoaderService.getDataLoader<
-      FilterProps,
+      FilterKey<PaginationFilter>,
       bigint,
       Array<Post>
-    >({ __key: 'loadPostsByTagId' }, async (keys) => {
+    >({ __key: 'loadPostsByTagId', ...filter }, async (keys) => {
+      const rankedPosts = this.drizzleService.db.$with('ranked_posts').as(
+        this.drizzleService.db
+          .select({
+            id: posts.id,
+            type: posts.type,
+            title: posts.title,
+            description: posts.description,
+            content: posts.content,
+            isPublish: posts.isPublish,
+            createdBy: posts.createdBy,
+            createdAt: posts.createdAt,
+            updatedBy: posts.updatedBy,
+            updatedAt: posts.updatedAt,
+            tagId: tagRelationships.tagId,
+            rowNumber:
+              sql`ROW_NUMBER() OVER (PARTITION BY ${tagRelationships.tagId} ORDER BY ${tagRelationships.id})`.as(
+                rowNumerAlias,
+              ),
+          })
+          .from(posts)
+          .leftJoin(
+            tagRelationships,
+            and(
+              eq(tagRelationships.entityName, EntityName.POST),
+              eq(tagRelationships.entityId, posts.id),
+            ),
+          )
+          .where(inArray(tagRelationships.tagId, [...keys])),
+      );
+
       const result = await this.drizzleService.db
-        .select({
-          id: posts.id,
-          type: posts.type,
-          title: posts.title,
-          description: posts.description,
-          content: posts.content,
-          isPublish: posts.isPublish,
-          createdBy: posts.createdBy,
-          createdAt: posts.createdAt,
-          updatedBy: posts.updatedBy,
-          updatedAt: posts.updatedAt,
-          tagId: tagRelationships.tagId,
-        })
-        .from(posts)
-        .leftJoin(
-          tagRelationships,
+        .with(rankedPosts)
+        .select()
+        .from(rankedPosts)
+        .where(
           and(
-            eq(tagRelationships.entityName, EntityName.POST),
-            eq(tagRelationships.entityId, posts.id),
+            gt(rankedPosts.rowNumber, filter.offset),
+            lte(rankedPosts.rowNumber, filter.limit),
           ),
         )
-        .where(inArray(tagRelationships.tagId, [...keys]))
         .execute();
 
       const mapResult = result.reduce((map, result) => {
@@ -85,11 +102,13 @@ export class PostsService {
     return dataLoader.load(tagId);
   }
 
-  async findAll() {
+  async findAll(filter: PaginationFilter) {
     const result = await this.drizzleService.db
       .select()
       .from(posts)
       .orderBy(posts.id)
+      .offset(filter.offset)
+      .limit(filter.limit)
       .execute();
 
     return result;

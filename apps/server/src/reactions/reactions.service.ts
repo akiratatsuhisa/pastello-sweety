@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, gt, inArray, lte, sql } from 'drizzle-orm';
 import { IdentityUser } from 'src/auth/identity.class';
 import { DataLoaderService } from 'src/data-loader/data-loader.service';
-import { FilterProps } from 'src/data-loader/data-loader.types';
+import { FilterKey, rowNumerAlias } from 'src/data-loader/data-loader.types';
 import { DrizzleService } from 'src/drizzle/drizzle.service';
-import { EntityName } from 'src/graphql/models';
+import { EntityName, PaginationFilter } from 'src/graphql/models';
 import { reactions } from 'src/schema';
 
 import { DeleteReaction, Reaction, UpsertReaction } from './types';
@@ -16,34 +16,70 @@ export class ReactionsService {
     private readonly dataLoaderService: DataLoaderService,
   ) {}
 
-  async loadRectionsByEntityId(enityName: EntityName, entityId: bigint) {
+  async loadRectionsByEntityId(
+    enityName: EntityName,
+    entityId: bigint,
+    filter: PaginationFilter,
+  ) {
     const dataLoader = this.dataLoaderService.getDataLoader<
-      FilterProps,
+      FilterKey<PaginationFilter>,
       bigint,
       Array<Reaction>
-    >({ __key: `loadRectionsByEntityId:${enityName}` }, async (keys) => {
-      const result = await this.drizzleService.db
-        .select()
-        .from(reactions)
-        .where(
-          and(
-            eq(reactions.entityName, enityName),
-            inArray(reactions.entityId, [...keys]),
-          ),
-        )
-        .execute();
+    >(
+      { __key: `loadRectionsByEntityId:${enityName}`, ...filter },
+      async (keys) => {
+        const rankedReactions = this.drizzleService.db
+          .$with('ranked_reactions')
+          .as(
+            this.drizzleService.db
+              .select({
+                id: reactions.id,
+                entityName: reactions.entityName,
+                entityId: reactions.entityId,
+                rating: reactions.rating,
+                type: reactions.type,
+                createdBy: reactions.createdBy,
+                createdAt: reactions.createdAt,
+                updatedBy: reactions.updatedBy,
+                updatedAt: reactions.updatedAt,
+                rowNumber:
+                  sql`ROW_NUMBER() OVER (PARTITION BY ${reactions.entityId} ORDER BY ${reactions.id})`.as(
+                    rowNumerAlias,
+                  ),
+              })
+              .from(reactions)
+              .where(
+                and(
+                  eq(reactions.entityName, enityName),
+                  inArray(reactions.entityId, [...keys]),
+                ),
+              ),
+          );
 
-      const mapResult = result.reduce((map, result) => {
-        if (map.has(result.entityId)) {
-          map.get(result.entityId).push(result as Reaction);
-        } else {
-          map.set(result.entityId, [result as Reaction]);
-        }
-        return map;
-      }, new Map<bigint, Array<Reaction>>());
+        const result = await this.drizzleService.db
+          .with(rankedReactions)
+          .select()
+          .from(rankedReactions)
+          .where(
+            and(
+              gt(rankedReactions.rowNumber, filter.offset),
+              lte(rankedReactions.rowNumber, filter.limit),
+            ),
+          )
+          .execute();
 
-      return keys.map((key) => mapResult.get(key) ?? []);
-    });
+        const mapResult = result.reduce((map, result) => {
+          if (map.has(result.entityId)) {
+            map.get(result.entityId).push(result as unknown as Reaction);
+          } else {
+            map.set(result.entityId, [result as unknown as Reaction]);
+          }
+          return map;
+        }, new Map<bigint, Array<Reaction>>());
+
+        return keys.map((key) => mapResult.get(key) ?? []);
+      },
+    );
 
     return dataLoader.load(entityId);
   }

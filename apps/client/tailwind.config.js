@@ -195,6 +195,9 @@ export default {
           // 'serif',
         ],
       },
+      spacing: {
+        container: '1280px',
+      },
     },
   },
   safelist: [
@@ -205,15 +208,14 @@ export default {
       pattern: new RegExp(`^bg-(${colorNames})-\\d+$`),
     },
     {
-      pattern: new RegExp(
-        `^border(-(x|y|s|e|t|b|l|r))?-(${colorNames})-\\d+$`,
-      ),
+      pattern: new RegExp(`^border(-(x|y|s|e|t|b|l|r))?-(${colorNames})-\\d+$`),
     },
     {
-      pattern: new RegExp(
-        `^(ring|outline)-(${colorNames})-\\d+$`,
-      ),
+      pattern: new RegExp(`^(ring|outline)-(${colorNames})-\\d+$`),
     },
   ],
-  plugins: [],
+  plugins: [
+    // eslint-disable-next-line no-undef
+    require('@tailwindcss/container-queries'),
+  ],
 };

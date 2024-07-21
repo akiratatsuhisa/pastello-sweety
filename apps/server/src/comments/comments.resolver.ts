@@ -7,8 +7,8 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import { IdentityUser, User } from 'src/auth/decorators';
-import { EntityName } from 'src/graphql/models';
+import { IdentityUser, Public, User } from 'src/auth/decorators';
+import { EntityName, PaginationFilter } from 'src/graphql/models';
 import { BigIntScalar } from 'src/graphql/scalars';
 import { PostsService } from 'src/posts/posts.service';
 import { Post } from 'src/posts/types';
@@ -52,15 +52,20 @@ export class CommentsResolver {
   }
 
   @ResolveField(() => Tag)
-  async tags(@Parent() parent: Comment) {
-    return this.tagsService.loadTagsByEntityId(EntityName.COMMENT, parent.id);
+  async tags(@Parent() parent: Comment, @Args() args: PaginationFilter) {
+    return this.tagsService.loadTagsByEntityId(
+      EntityName.COMMENT,
+      parent.id,
+      args,
+    );
   }
 
   @ResolveField(() => [Reaction])
-  async reactions(@Parent() parent: Comment) {
+  async reactions(@Parent() parent: Comment, @Args() args: PaginationFilter) {
     return this.reactionsService.loadRectionsByEntityId(
       EntityName.COMMENT,
       parent.id,
+      args,
     );
   }
 
@@ -70,15 +75,17 @@ export class CommentsResolver {
   }
 
   @ResolveField(() => [Comment])
-  async children(@Parent() parent: Comment) {
-    return this.commentsService.loadChildren(parent.id);
+  async children(@Parent() parent: Comment, @Args() args: PaginationFilter) {
+    return this.commentsService.loadChildren(parent.id, args);
   }
 
+  @Public()
   @Query(() => [Comment])
-  async comments() {
-    return this.commentsService.findAll();
+  async comments(@Args() args: PaginationFilter) {
+    return this.commentsService.findAll(args);
   }
 
+  @Public()
   @Query(() => Comment)
   async comment(@Args('id', { type: () => BigIntScalar }) id: bigint) {
     return this.commentsService.findById(id);

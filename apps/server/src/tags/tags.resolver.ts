@@ -7,9 +7,10 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import { IdentityUser, User } from 'src/auth/decorators';
+import { IdentityUser, Public, User } from 'src/auth/decorators';
 import { CommentsService } from 'src/comments/comments.service';
 import { Comment } from 'src/comments/types';
+import { PaginationFilter } from 'src/graphql/models';
 import { BigIntScalar } from 'src/graphql/scalars';
 import { PostsService } from 'src/posts/posts.service';
 import { Auth0User } from 'src/users/types';
@@ -48,20 +49,22 @@ export class TagsResolver {
   }
 
   @ResolveField(() => [Post])
-  async posts(@Parent() parent: Tag) {
-    return this.postsService.loadPostsByTagId(parent.id);
+  async posts(@Parent() parent: Tag, @Args() args: PaginationFilter) {
+    return this.postsService.loadPostsByTagId(parent.id, args);
   }
 
   @ResolveField(() => [Comment])
-  async comments(@Parent() parent: Tag) {
-    return this.commentsService.loadCommentsByTagId(parent.id);
+  async comments(@Parent() parent: Tag, @Args() args: PaginationFilter) {
+    return this.commentsService.loadCommentsByTagId(parent.id, args);
   }
 
+  @Public()
   @Query(() => [Tag])
-  async tags() {
-    return this.tagsService.findAll();
+  async tags(@Args() args: PaginationFilter) {
+    return this.tagsService.findAll(args);
   }
 
+  @Public()
   @Query(() => Tag)
   async tag(@Args('id', { type: () => BigIntScalar }) id: bigint) {
     return this.tagsService.findById(id);

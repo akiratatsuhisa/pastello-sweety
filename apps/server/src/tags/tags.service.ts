@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, gt, inArray, lte, sql } from 'drizzle-orm';
 import { IdentityUser } from 'src/auth/identity.class';
 import { DataLoaderService } from 'src/data-loader/data-loader.service';
-import { FilterProps } from 'src/data-loader/data-loader.types';
+import { FilterKey, rowNumerAlias } from 'src/data-loader/data-loader.types';
 import { DrizzleService } from 'src/drizzle/drizzle.service';
-import { EntityName } from 'src/graphql/models';
+import { EntityName, PaginationFilter } from 'src/graphql/models';
 import { tagRelationships, tags } from 'src/schema';
 
 import { AddTag, CreateTag, RemoveTag, Tag, UpdateTag } from './types';
@@ -16,28 +16,49 @@ export class TagsService {
     private readonly dataLoaderService: DataLoaderService,
   ) {}
 
-  async loadTagsByEntityId(enityName: EntityName, entityId: bigint) {
+  async loadTagsByEntityId(
+    enityName: EntityName,
+    entityId: bigint,
+    filter: PaginationFilter,
+  ) {
     const dataLoader = this.dataLoaderService.getDataLoader<
-      FilterProps,
+      FilterKey<PaginationFilter>,
       bigint,
       Array<Tag>
-    >({ __key: `loadTagsByEntityId:${enityName}` }, async (keys) => {
+    >({ __key: `loadTagsByEntityId:${enityName}`, ...filter }, async (keys) => {
+      const rankedTags = this.drizzleService.db.$with('ranked_tags').as(
+        this.drizzleService.db
+          .select({
+            id: tags.id,
+            name: tags.name,
+            createdBy: tags.createdBy,
+            createdAt: tags.createdAt,
+            updatedBy: tags.updatedBy,
+            updatedAt: tags.updatedAt,
+            entityId: tagRelationships.entityId,
+            rowNumber:
+              sql`ROW_NUMBER() OVER (PARTITION BY ${tagRelationships.entityId} ORDER BY ${tagRelationships.id})`.as(
+                rowNumerAlias,
+              ),
+          })
+          .from(tags)
+          .leftJoin(tagRelationships, eq(tagRelationships.tagId, tags.id))
+          .where(
+            and(
+              eq(tagRelationships.entityName, enityName),
+              inArray(tagRelationships.entityId, [...keys]),
+            ),
+          ),
+      );
+
       const result = await this.drizzleService.db
-        .select({
-          id: tags.id,
-          name: tags.name,
-          createdBy: tags.createdBy,
-          createdAt: tags.createdAt,
-          updatedBy: tags.updatedBy,
-          updatedAt: tags.updatedAt,
-          entityId: tagRelationships.entityId,
-        })
-        .from(tags)
-        .leftJoin(tagRelationships, eq(tagRelationships.tagId, tags.id))
+        .with(rankedTags)
+        .select()
+        .from(rankedTags)
         .where(
           and(
-            eq(tagRelationships.entityName, enityName),
-            inArray(tagRelationships.entityId, [...keys]),
+            gt(rankedTags.rowNumber, filter.offset),
+            lte(rankedTags.rowNumber, filter.limit),
           ),
         )
         .execute();
@@ -57,11 +78,13 @@ export class TagsService {
     return dataLoader.load(entityId);
   }
 
-  async findAll() {
+  async findAll(filter: PaginationFilter) {
     const result = await this.drizzleService.db
       .select()
       .from(tags)
       .orderBy(tags.id)
+      .offset(filter.offset)
+      .limit(filter.limit)
       .execute();
 
     return result;

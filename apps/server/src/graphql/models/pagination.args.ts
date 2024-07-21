@@ -4,7 +4,7 @@ import { IsOptional, Max, Min } from 'class-validator';
 
 export const paginationFilterDefault: PaginationFilter = {
   limit: 50,
-  skip: 0,
+  offset: 0,
 };
 
 @ArgsType()
@@ -16,9 +16,9 @@ export class PaginationFilter {
   @Field(() => Int, { defaultValue: paginationFilterDefault.limit })
   limit: number;
 
-  @Transform(({ value }) => value ?? paginationFilterDefault.skip)
+  @Transform(({ value }) => value ?? paginationFilterDefault.offset)
   @Min(0)
   @IsOptional()
-  @Field(() => Int, { defaultValue: paginationFilterDefault.skip })
-  skip: number;
+  @Field(() => Int, { defaultValue: paginationFilterDefault.offset })
+  offset: number;
 }
