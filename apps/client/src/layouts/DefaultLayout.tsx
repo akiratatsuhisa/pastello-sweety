@@ -6,7 +6,7 @@ export const DefaultLayout: FC<{ top?: ReactNode; bottom?: ReactNode }> = ({
   bottom,
 }) => {
   return (
-    <div className=" flex flex-col min-h-dvh max-w-full bg-remy-800">
+    <div className="flex min-h-dvh max-w-full flex-col">
       {top}
 
       <div className="flex-1">

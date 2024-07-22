@@ -12,6 +12,7 @@ export default {
       transparent: colors.transparent,
       black: colors.black,
       white: colors.white,
+      gray: colors.gray,
       remy: {
         50: '#FFFFFF',
         100: '#FFFCFE',

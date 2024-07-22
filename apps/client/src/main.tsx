@@ -6,7 +6,7 @@ import { BrowserRouter } from 'react-router-dom';
 
 import { App } from '@/App.tsx';
 
-import { ApolloAuthProvider } from './providers';
+import { ApolloAuthProvider, ThemeProvider } from './providers';
 
 const onRedirectCallback = (appState?: AppState) => {
   window.location.replace(
@@ -31,7 +31,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       onRedirectCallback={onRedirectCallback}
     >
       <ApolloAuthProvider>
-        <App />
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
       </ApolloAuthProvider>
     </Auth0Provider>
   </BrowserRouter>,

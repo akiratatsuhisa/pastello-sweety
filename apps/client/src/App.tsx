@@ -4,14 +4,15 @@ import { useRoutes } from 'react-router-dom';
 import { NotLogged } from '@/pages/Common';
 import { Home } from '@/pages/Home';
 
-import { DefaultHeader } from './layouts/DefaultHeader';
-import { DefaultLayout } from './layouts/DefaultLayout';
+import { DefaultBottomBar, DefaultLayout, DefaultTopBar } from './layouts';
 
 export const App: FC = () => {
   const routes = useRoutes([
     {
       path: '',
-      element: <DefaultLayout top={<DefaultHeader />} />,
+      element: (
+        <DefaultLayout top={<DefaultTopBar />} bottom={<DefaultBottomBar />} />
+      ),
       children: [
         {
           path: '/',
