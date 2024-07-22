@@ -1,6 +1,7 @@
 import { forwardRef, Inject } from '@nestjs/common';
 import {
   Args,
+  Extensions,
   Mutation,
   Parent,
   Query,
@@ -8,6 +9,7 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { IdentityUser, Public, User } from 'src/auth/decorators';
+import { roleMiddleware } from 'src/graphql/middlewares';
 import { EntityName, PaginationFilter } from 'src/graphql/models';
 import { BigIntScalar } from 'src/graphql/scalars';
 import { PostsService } from 'src/posts/posts.service';
@@ -18,9 +20,10 @@ import { TagsService } from 'src/tags/tags.service';
 import { Tag } from 'src/tags/types';
 import { Auth0User } from 'src/users/types';
 import { UsersService } from 'src/users/users.service';
+import { enums } from 'utils';
 
 import { CommentsService } from './comments.service';
-import { Comment, CreateComment, UpdateComment } from './types';
+import { Comment, CommentsFilter, CreateComment, UpdateComment } from './types';
 
 @Resolver(() => Comment)
 export class CommentsResolver {
@@ -46,12 +49,15 @@ export class CommentsResolver {
     return this.usersService.loadUserById(parent.updatedBy);
   }
 
-  @ResolveField(() => Post)
-  async post(@Parent() parent: Comment) {
-    return this.postsService.loadPostById(parent.postId);
+  @ResolveField(() => Post, { nullable: true })
+  async post(@Parent() parent: Comment, @User() user: IdentityUser) {
+    return this.postsService.loadPostById(
+      parent.postId,
+      !user?.roles.includes(enums.Auth0Role.Administrator) ?? true,
+    );
   }
-
-  @ResolveField(() => Tag)
+  @Extensions({ roles: [enums.Auth0Role.Administrator] })
+  @ResolveField(() => [Tag], { middleware: [roleMiddleware] })
   async tags(@Parent() parent: Comment, @Args() args: PaginationFilter) {
     return this.tagsService.loadTagsByEntityId(
       EntityName.COMMENT,
@@ -60,7 +66,8 @@ export class CommentsResolver {
     );
   }
 
-  @ResolveField(() => [Reaction])
+  @Extensions({ roles: [enums.Auth0Role.Administrator] })
+  @ResolveField(() => [Reaction], { middleware: [roleMiddleware] })
   async reactions(@Parent() parent: Comment, @Args() args: PaginationFilter) {
     return this.reactionsService.loadRectionsByEntityId(
       EntityName.COMMENT,
@@ -74,21 +81,25 @@ export class CommentsResolver {
     return this.commentsService.loadParent(parent.parentId);
   }
 
-  @ResolveField(() => [Comment])
+  @Extensions({ roles: [enums.Auth0Role.Administrator] })
+  @ResolveField(() => [Comment], { middleware: [roleMiddleware] })
   async children(@Parent() parent: Comment, @Args() args: PaginationFilter) {
     return this.commentsService.loadChildren(parent.id, args);
   }
 
   @Public()
   @Query(() => [Comment])
-  async comments(@Args() args: PaginationFilter) {
-    return this.commentsService.findAll(args);
+  async comments(@Args() args: CommentsFilter, @User() user: IdentityUser) {
+    return this.commentsService.findAll(args, user);
   }
 
   @Public()
   @Query(() => Comment)
-  async comment(@Args('id', { type: () => BigIntScalar }) id: bigint) {
-    return this.commentsService.findById(id);
+  async comment(
+    @Args('id', { type: () => BigIntScalar }) id: bigint,
+    @User() user: IdentityUser,
+  ) {
+    return this.commentsService.findById(id, user);
   }
 
   @Mutation(() => Comment)
@@ -109,7 +120,10 @@ export class CommentsResolver {
   }
 
   @Mutation(() => Comment)
-  async deleteComment(@Args('id', { type: () => BigIntScalar }) id: bigint) {
-    return this.commentsService.delete(id);
+  async deleteComment(
+    @Args('id', { type: () => BigIntScalar }) id: bigint,
+    @User() user: IdentityUser,
+  ) {
+    return this.commentsService.delete(id, user);
   }
 }

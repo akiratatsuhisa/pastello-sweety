@@ -13,6 +13,7 @@ import { EntityUnion } from 'src/graphql/models/entity.interface';
 import { PostsService } from 'src/posts/posts.service';
 import { Auth0User } from 'src/users/types';
 import { UsersService } from 'src/users/users.service';
+import { enums } from 'utils';
 
 import { ReactionsService } from './reactions.service';
 import { DeleteReaction, Reaction, UpsertReaction } from './types';
@@ -39,13 +40,19 @@ export class ReactionsResolver {
     return this.usersService.loadUserById(parent.updatedBy);
   }
 
-  @ResolveField(() => EntityUnion)
-  async entity(@Parent() parent: Reaction) {
+  @ResolveField(() => EntityUnion, { nullable: true })
+  async entity(@Parent() parent: Reaction, @User() user: IdentityUser) {
+    const isPublishedOnly =
+      !user?.roles.includes(enums.Auth0Role.Administrator) ?? true;
+
     switch (parent.entityName) {
       case EntityName.POST:
-        return this.postsService.loadPostById(parent.entityId);
+        return this.postsService.loadPostById(parent.entityId, isPublishedOnly);
       case EntityName.COMMENT:
-        return this.commentsService.loadCommentById(parent.entityId);
+        return this.commentsService.loadCommentById(
+          parent.entityId,
+          isPublishedOnly,
+        );
       default:
         return null;
     }

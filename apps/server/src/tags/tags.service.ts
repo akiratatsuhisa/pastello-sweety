@@ -1,11 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { and, eq, gt, inArray, lte, sql } from 'drizzle-orm';
 import { IdentityUser } from 'src/auth/identity.class';
 import { DataLoaderService } from 'src/data-loader/data-loader.service';
 import { FilterKey, rowNumerAlias } from 'src/data-loader/data-loader.types';
 import { DrizzleService } from 'src/drizzle/drizzle.service';
 import { EntityName, PaginationFilter } from 'src/graphql/models';
-import { tagRelationships, tags } from 'src/schema';
+import { comments, posts, tagRelationships, tags } from 'src/schema';
+import { enums } from 'utils';
 
 import { AddTag, CreateTag, RemoveTag, Tag, UpdateTag } from './types';
 
@@ -142,6 +147,27 @@ export class TagsService {
   }
 
   async add(data: AddTag, user: IdentityUser) {
+    const entity = data.entityName === EntityName.POST ? posts : comments;
+
+    const [entityResult] = await this.drizzleService.db
+      .select()
+      .from(entity)
+      .where(eq(entity.id, data.entityId))
+      .execute();
+
+    if (!entityResult) {
+      throw new NotFoundException();
+    }
+
+    if (
+      (data.entityName === EntityName.POST &&
+        !user.roles.includes(enums.Auth0Role.Administrator)) ||
+      (data.entityName === EntityName.COMMENT &&
+        entityResult.createdBy !== user.sub)
+    ) {
+      throw new ForbiddenException();
+    }
+
     const [result] = await this.drizzleService.db
       .insert(tagRelationships)
       .values({
@@ -154,7 +180,28 @@ export class TagsService {
     return result;
   }
 
-  async remove(data: RemoveTag) {
+  async remove(data: RemoveTag, user: IdentityUser) {
+    const entity = data.entityName === EntityName.POST ? posts : comments;
+
+    const [entityResult] = await this.drizzleService.db
+      .select()
+      .from(entity)
+      .where(eq(entity.id, data.entityId))
+      .execute();
+
+    if (!entityResult) {
+      throw new NotFoundException();
+    }
+
+    if (
+      (data.entityName === EntityName.POST &&
+        !user.roles.includes(enums.Auth0Role.Administrator)) ||
+      (data.entityName === EntityName.COMMENT &&
+        entityResult.createdBy !== user.sub)
+    ) {
+      throw new ForbiddenException();
+    }
+
     const [result] = await this.drizzleService.db
       .delete(tagRelationships)
       .where(

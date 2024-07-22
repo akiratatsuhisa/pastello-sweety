@@ -15,7 +15,7 @@ export class Comment implements BaseNode {
   @Field(() => BigIntScalar)
   postId: bigint;
 
-  @Field(() => Post)
+  @Field(() => Post, { nullable: true })
   post: Post;
 
   @Field(() => BigIntScalar, { nullable: true })

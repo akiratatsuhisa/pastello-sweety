@@ -17,8 +17,8 @@ export class Reaction implements BaseNode, Entity {
 
   entityId: bigint;
 
-  @Field(() => EntityUnion)
-  entity: Post | Comment;
+  @Field(() => EntityUnion, { nullable: true })
+  entity?: Post | Comment;
 
   @Field(() => Int, { nullable: true })
   rating?: number;

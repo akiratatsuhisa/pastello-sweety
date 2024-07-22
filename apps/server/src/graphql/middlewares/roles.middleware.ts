@@ -1,6 +1,5 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common';
 import { FieldMiddleware, MiddlewareContext, NextFn } from '@nestjs/graphql';
-import { IdentityUser } from 'src/auth/identity.class';
 import { enums } from 'utils';
 
 /**
@@ -23,11 +22,11 @@ export const roleMiddleware: FieldMiddleware = async (
     return next();
   }
 
-  const user: IdentityUser = context.req.user;
+  const userRoles: Array<enums.Auth0Role> = context.req.user?.roles ?? [];
 
-  if (requiredRoles.some((role) => user.roles?.includes(role))) {
+  if (requiredRoles.some((role) => userRoles.includes(role))) {
     return next();
   }
 
-  throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+  throw new ForbiddenException();
 };

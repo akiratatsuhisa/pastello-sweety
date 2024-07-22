@@ -1,13 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { and, eq, gt, inArray, lte, sql } from 'drizzle-orm';
+import { and, eq, gt, inArray, lte, sql, SQLWrapper } from 'drizzle-orm';
 import { IdentityUser } from 'src/auth/identity.class';
 import { DataLoaderService } from 'src/data-loader/data-loader.service';
 import { FilterKey, rowNumerAlias } from 'src/data-loader/data-loader.types';
 import { DrizzleService } from 'src/drizzle/drizzle.service';
 import { EntityName, PaginationFilter } from 'src/graphql/models';
 import { posts, tagRelationships } from 'src/schema';
+import { enums } from 'utils';
 
-import { CreatePost, Post, UpdatePost } from './types';
+import { CreatePost, Post, PostsFilter, UpdatePost } from './types';
 
 @Injectable()
 export class PostsService {
@@ -16,16 +17,21 @@ export class PostsService {
     private readonly dataLoaderService: DataLoaderService,
   ) {}
 
-  async loadPostById(id: bigint) {
+  async loadPostById(id: bigint, isPublishedOnly: boolean) {
     const dataLoader = this.dataLoaderService.getDataLoader<
       FilterKey,
       bigint,
       Post
-    >({ __key: 'loadPostById' }, async (keys) => {
+    >({ __key: 'loadPostById', isPublishedOnly }, async (keys) => {
       const result = await this.drizzleService.db
         .select()
         .from(posts)
-        .where(inArray(posts.id, [...keys]))
+        .where(
+          and(
+            inArray(posts.id, [...keys]),
+            isPublishedOnly ? eq(posts.isPublish, true) : undefined,
+          ),
+        )
         .execute();
 
       const mapResult = result.reduce((map, result) => {
@@ -102,10 +108,34 @@ export class PostsService {
     return dataLoader.load(tagId);
   }
 
-  async findAll(filter: PaginationFilter) {
+  private async findByIdOrThrow(id: bigint) {
+    const [result] = await this.drizzleService.db
+      .select()
+      .from(posts)
+      .where(eq(posts.id, id))
+      .execute();
+
+    if (!result) {
+      throw new NotFoundException();
+    }
+
+    return result;
+  }
+
+  async findAll(filter: PostsFilter, user: IdentityUser) {
+    const andWhere: Array<SQLWrapper> = [];
+
+    if (
+      !user?.roles.includes(enums.Auth0Role.Administrator) ||
+      !filter.includeUnpublished
+    ) {
+      andWhere.push(eq(posts.isPublish, true));
+    }
+
     const result = await this.drizzleService.db
       .select()
       .from(posts)
+      .where(and(...andWhere))
       .orderBy(posts.id)
       .offset(filter.offset)
       .limit(filter.limit)
@@ -114,14 +144,13 @@ export class PostsService {
     return result;
   }
 
-  async findById(id: bigint) {
-    const [result] = await this.drizzleService.db
-      .select()
-      .from(posts)
-      .where(eq(posts.id, id))
-      .execute();
+  async findById(id: bigint, user: IdentityUser) {
+    const result = await this.findByIdOrThrow(id);
 
-    if (!result) {
+    if (
+      !user?.roles.includes(enums.Auth0Role.Administrator) &&
+      !result.isPublish
+    ) {
       throw new NotFoundException();
     }
 

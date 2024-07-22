@@ -88,7 +88,7 @@ const WritePostButton: FC<JSX.IntrinsicElements['button']> = ({
 
   const { hasRole } = useUserRole();
 
-  if (!hasRole(Auth0Role.Test)) {
+  if (!hasRole(Auth0Role.Administrator)) {
     return <></>;
   }
 

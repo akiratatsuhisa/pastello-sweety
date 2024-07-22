@@ -18,6 +18,10 @@ export const EntityUnion = createUnionType({
   name: 'EntityUnion',
   types: () => [Post, Comment] as const,
   resolveType(value) {
+    if (!value) {
+      return null;
+    }
+
     if (value.title) {
       return Post;
     }

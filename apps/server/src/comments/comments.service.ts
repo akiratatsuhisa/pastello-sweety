@@ -1,13 +1,29 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { and, eq, gt, inArray, isNull, lte, sql } from 'drizzle-orm';
 import { IdentityUser } from 'src/auth/identity.class';
 import { DataLoaderService } from 'src/data-loader/data-loader.service';
 import { FilterKey, rowNumerAlias } from 'src/data-loader/data-loader.types';
 import { DrizzleService } from 'src/drizzle/drizzle.service';
 import { EntityName, PaginationFilter } from 'src/graphql/models';
-import { comments, tagRelationships } from 'src/schema';
+import { comments, posts, tagRelationships } from 'src/schema';
+import { enums } from 'utils';
 
-import { Comment, CreateComment, UpdateComment } from './types';
+import { Comment, CommentsFilter, CreateComment, UpdateComment } from './types';
+
+const commentsSelectAllFields = {
+  id: comments.id,
+  postId: comments.postId,
+  parentId: comments.parentId,
+  content: comments.content,
+  createdBy: comments.createdBy,
+  createdAt: comments.createdAt,
+  updatedBy: comments.updatedBy,
+  updatedAt: comments.updatedAt,
+};
 
 @Injectable()
 export class CommentsService {
@@ -16,16 +32,22 @@ export class CommentsService {
     private readonly dataLoaderService: DataLoaderService,
   ) {}
 
-  async loadCommentById(id: bigint) {
+  async loadCommentById(id: bigint, isPublishedOnly: boolean) {
     const dataLoader = this.dataLoaderService.getDataLoader<
       FilterKey,
       bigint,
       Comment
-    >({ __key: 'loadCommentById' }, async (keys) => {
+    >({ __key: 'loadCommentById', isPublishedOnly }, async (keys) => {
       const result = await this.drizzleService.db
-        .select()
+        .select(commentsSelectAllFields)
         .from(comments)
-        .where(inArray(comments.id, [...keys]))
+        .leftJoin(posts, eq(posts.id, comments.postId))
+        .where(
+          and(
+            inArray(comments.id, [...keys]),
+            isPublishedOnly ? eq(posts.isPublish, true) : undefined,
+          ),
+        )
         .execute();
 
       const mapResult = result.reduce((map, result) => {
@@ -48,14 +70,7 @@ export class CommentsService {
       const rankedComments = this.drizzleService.db.$with('ranked_comments').as(
         this.drizzleService.db
           .select({
-            id: comments.id,
-            postId: comments.postId,
-            parentId: comments.parentId,
-            content: comments.content,
-            createdBy: comments.createdBy,
-            createdAt: comments.createdAt,
-            updatedBy: comments.updatedBy,
-            updatedAt: comments.updatedAt,
+            ...commentsSelectAllFields,
             tagId: tagRelationships.tagId,
             rowNumber:
               sql`ROW_NUMBER() OVER (PARTITION BY ${tagRelationships.tagId} ORDER BY ${tagRelationships.id})`.as(
@@ -231,10 +246,34 @@ export class CommentsService {
     return dataLoader.load(id);
   }
 
-  async findAll(filter: PaginationFilter) {
-    const result = await this.drizzleService.db
+  private async findByIdOrThrow(id: bigint) {
+    const [result] = await this.drizzleService.db
       .select()
       .from(comments)
+      .where(eq(comments.id, id))
+      .execute();
+
+    if (!result) {
+      throw new NotFoundException();
+    }
+
+    return result;
+  }
+
+  async findAll(filter: CommentsFilter, user: IdentityUser) {
+    const result = await this.drizzleService.db
+      .select(commentsSelectAllFields)
+      .from(comments)
+      .leftJoin(posts, eq(posts.id, comments.postId))
+      .where(
+        and(
+          eq(comments.postId, filter.postId),
+          filter.includeUnpublished &&
+            user?.roles.includes(enums.Auth0Role.Administrator)
+            ? undefined
+            : eq(posts.isPublish, true),
+        ),
+      )
       .orderBy(comments.id)
       .offset(filter.offset)
       .limit(filter.limit)
@@ -243,11 +282,19 @@ export class CommentsService {
     return result;
   }
 
-  async findById(id: bigint) {
+  async findById(id: bigint, user: IdentityUser) {
     const [result] = await this.drizzleService.db
-      .select()
+      .select(commentsSelectAllFields)
       .from(comments)
-      .where(eq(comments.id, id))
+      .leftJoin(posts, eq(posts.id, comments.postId))
+      .where(
+        and(
+          eq(comments.id, id),
+          user?.roles.includes(enums.Auth0Role.Administrator)
+            ? undefined
+            : eq(posts.isPublish, true),
+        ),
+      )
       .execute();
 
     if (!result) {
@@ -271,6 +318,12 @@ export class CommentsService {
   }
 
   async update(id: bigint, data: UpdateComment, user: IdentityUser) {
+    const dataInDb = await this.findByIdOrThrow(id);
+
+    if (dataInDb.createdBy !== user.sub) {
+      throw new ForbiddenException();
+    }
+
     const [result] = await this.drizzleService.db
       .update(comments)
       .set({
@@ -284,7 +337,16 @@ export class CommentsService {
     return result;
   }
 
-  async delete(id: bigint) {
+  async delete(id: bigint, user: IdentityUser) {
+    const dataInDb = await this.findByIdOrThrow(id);
+
+    if (
+      !user.roles.includes(enums.Auth0Role.Administrator) &&
+      dataInDb.createdBy !== user.sub
+    ) {
+      throw new ForbiddenException();
+    }
+
     const [result] = await this.drizzleService.db
       .delete(comments)
       .where(eq(comments.id, id))

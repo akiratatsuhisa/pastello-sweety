@@ -1,8 +1,7 @@
 import {
   ExecutionContext,
-  HttpException,
-  HttpStatus,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
@@ -40,7 +39,7 @@ export class JwksAuthGuard extends AuthGuard('jwt') {
     }
 
     if (err || !user) {
-      throw new HttpException('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
+      throw new UnauthorizedException();
     }
 
     return user as any;

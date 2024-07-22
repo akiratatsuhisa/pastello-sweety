@@ -1,8 +1,7 @@
 import {
   CanActivate,
   ExecutionContext,
-  HttpException,
-  HttpStatus,
+  ForbiddenException,
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
@@ -53,6 +52,6 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
-    throw new HttpException('FORBIDDEN', HttpStatus.FORBIDDEN);
+    throw new ForbiddenException();
   }
 }

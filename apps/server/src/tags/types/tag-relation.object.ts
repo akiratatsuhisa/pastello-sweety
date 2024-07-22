@@ -16,8 +16,8 @@ export class TagRelation implements BaseNode, Entity {
 
   entityId: bigint;
 
-  @Field(() => EntityUnion)
-  entity: Post | Comment;
+  @Field(() => EntityUnion, { nullable: true })
+  entity?: Post | Comment;
 
   @Field(() => BigIntScalar)
   tagId: bigint;
