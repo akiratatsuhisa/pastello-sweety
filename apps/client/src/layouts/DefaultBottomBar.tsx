@@ -1,24 +1,14 @@
-import {
-  faBook,
-  faClapperboard,
-  faImage,
-  IconDefinition,
-} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { FC, useState } from 'react';
+import { FC } from 'react';
+import { NavLink } from 'react-router-dom';
 
+import { navTabs, useNavTab } from '@/hooks';
 import { useTheme } from '@/providers';
-
-const items: Array<{ label: string; icon: IconDefinition }> = [
-  { label: 'Posts', icon: faBook },
-  { label: 'Compacts', icon: faClapperboard },
-  { label: 'Photos', icon: faImage },
-];
 
 export const DefaultBottomBar: FC = () => {
   const { color, isDesktop } = useTheme();
 
-  const [activeIndex, setActiveIndex] = useState(0);
+  const { activeTabIndex } = useNavTab();
 
   if (isDesktop) {
     return <></>;
@@ -31,13 +21,13 @@ export const DefaultBottomBar: FC = () => {
       >
         <div className="app-container relative flex h-16 w-full items-center justify-between px-4">
           <div className="app-container pointer-events-none absolute inset-0 flex px-4">
-            {items.map((_v, key) =>
-              !key ? (
+            {navTabs.map((_v, key) =>
+              !key && activeTabIndex >= 0 ? (
                 <div
                   key={`line-${key}`}
                   className="relative flex-1 transition-all duration-300 ease-in"
                   style={{
-                    transform: `translateX(calc(${activeIndex} * 100%))`,
+                    transform: `translateX(calc(${activeTabIndex} * 100%))`,
                   }}
                 >
                   <div
@@ -50,15 +40,15 @@ export const DefaultBottomBar: FC = () => {
             )}
           </div>
 
-          {items.map(({ label, icon }, key) => (
-            <button
+          {navTabs.map(({ label, icon, to }, key) => (
+            <NavLink
               key={`menu-${key}`}
-              className={`flex h-full flex-1 flex-col items-center justify-around truncate p-2 text-${color}-${key === activeIndex ? '700' : '600'}`}
-              onClick={() => setActiveIndex(key)}
+              className={`flex h-full flex-1 flex-col items-center justify-around truncate p-2 text-${color}-${key === activeTabIndex ? '700' : '600'}`}
+              to={to}
             >
               <FontAwesomeIcon icon={icon} className="size-5" />
               <span className="text-sm font-semibold">{label}</span>
-            </button>
+            </NavLink>
           ))}
         </div>
       </div>

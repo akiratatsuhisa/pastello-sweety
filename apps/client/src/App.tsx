@@ -19,6 +19,36 @@ export const App: FC = () => {
           index: true,
           element: <Home />,
         },
+        {
+          path: '/blogs',
+          index: true,
+          element: <>Blog</>,
+        },
+        {
+          path: '/blogs/:id',
+          index: true,
+          element: <>Blog Detail</>,
+        },
+        {
+          path: '/compacts',
+          index: true,
+          element: <>compacts</>,
+        },
+        {
+          path: '/compacts/:id',
+          index: true,
+          element: <>compacts detail</>,
+        },
+        {
+          path: '/photos',
+          index: true,
+          element: <>photos</>,
+        },
+        {
+          path: '/photos/:id',
+          index: true,
+          element: <>photos detail</>,
+        },
       ],
     },
     { path: '/not-logged', element: <NotLogged /> },
