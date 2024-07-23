@@ -123,7 +123,7 @@ export class PostsService {
   }
 
   async findAll(filter: PostsFilter, user: IdentityUser) {
-    const andWhere: Array<SQLWrapper> = [];
+    const andWhere: Array<SQLWrapper> = [inArray(posts.type, filter.type)];
 
     if (
       !user?.roles.includes(enums.Auth0Role.Administrator) ||

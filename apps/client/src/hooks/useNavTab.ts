@@ -18,8 +18,8 @@ export const navTabs: Array<{
   {
     label: 'Posts',
     icon: faBook,
-    matcher: /^\/blogs/,
-    to: { pathname: '/blogs' },
+    matcher: /^\/posts/,
+    to: { pathname: '/posts' },
   },
   {
     label: 'Compacts',

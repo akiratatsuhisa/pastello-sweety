@@ -6,6 +6,12 @@
 
 @layer components {
   .app-container {
-    @apply xl:max-w-container mx-auto;
+    @apply mx-auto xl:max-w-container;
+  }
+}
+
+@media print {
+  body {
+    margin: 0 !important;
   }
 }

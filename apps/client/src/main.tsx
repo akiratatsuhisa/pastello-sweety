@@ -1,12 +1,11 @@
-import './index.css';
+import '@/index.css';
 
 import { AppState, Auth0Provider } from '@auth0/auth0-react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import { App } from '@/App.tsx';
-
-import { ApolloAuthProvider, ThemeProvider } from './providers';
+import { ApolloAuthProvider, ThemeProvider } from '@/providers';
 
 const onRedirectCallback = (appState?: AppState) => {
   window.location.replace(

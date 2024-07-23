@@ -19,8 +19,8 @@ export const DefaultBottomBar: FC = () => {
       <div
         className={`solid sticky bottom-0 flex-initial border-t border-${color}-950 bg-white`}
       >
-        <div className="app-container relative flex h-16 w-full items-center justify-between px-4">
-          <div className="app-container pointer-events-none absolute inset-0 flex px-4">
+        <div className="app-container relative flex h-16 w-full items-center justify-between px-3">
+          <div className="app-container pointer-events-none absolute inset-0 flex px-3">
             {navTabs.map((_v, key) =>
               !key && activeTabIndex >= 0 ? (
                 <div

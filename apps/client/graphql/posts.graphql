@@ -1,0 +1,36 @@
+query Posts(
+  $limit: Int
+  $offset: Int
+  $includeUnpublished: Boolean!
+  $type: [PostType!]!
+) {
+  posts(
+    limit: $limit
+    offset: $offset
+    includeUnpublished: $includeUnpublished
+    type: $type
+  ) {
+    id
+    type
+    isPublish
+    title
+    description
+    content
+    createdAt
+    createdUser {
+      name
+      nickname
+      picture
+    }
+    tags {
+      id
+      name
+    }
+  }
+}
+
+mutation CreatePost($input: CreatePost!) {
+  createdPost: createPost(input: $input) {
+    id
+  }
+}

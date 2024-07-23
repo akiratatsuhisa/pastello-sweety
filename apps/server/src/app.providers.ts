@@ -1,6 +1,6 @@
 import { Provider } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { JwksAuthGuard, PermissionsGuard, RolesGuard } from 'src/auth/guards';
+import { JwksAuthGuard, RolesGuard } from 'src/auth/guards';
 
 import { BigIntScalar } from './graphql/scalars';
 
@@ -10,10 +10,7 @@ export const appProviders: Array<Provider> = [
     provide: APP_GUARD,
     useClass: JwksAuthGuard,
   },
-  {
-    provide: APP_GUARD,
-    useClass: PermissionsGuard,
-  },
+
   {
     provide: APP_GUARD,
     useClass: RolesGuard,
