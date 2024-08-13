@@ -13,10 +13,11 @@ import { Dialog, DialogBackdrop, DialogPanel } from '@headlessui/react';
 import { FC, MouseEventHandler, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useEventListener, useMediaQuery } from 'usehooks-ts';
+import { enums } from 'utils';
 
 import { Typography } from '@/components';
 import { useCreatePostMutation } from '@/graphql/types-and-hooks.g';
-import { Auth0Role, navTabs, useNavTab, useUserRole } from '@/hooks';
+import { navTabs, useNavTab, useUserRole } from '@/hooks';
 import { useTheme } from '@/providers';
 
 const lineClass = `absolute h-0.5 w-full bg-black transition-all duration-300 ease-in-out`;
@@ -212,7 +213,7 @@ const WritePostButton: FC<JSX.IntrinsicElements['button']> = ({
   };
 
   if (
-    !hasRole(Auth0Role.Administrator) ||
+    !hasRole(enums.Auth0Role.Administrator) ||
     /^\/posts\/\d+\/editor$/.test(location.pathname)
   ) {
     return <></>;

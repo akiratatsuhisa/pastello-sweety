@@ -20,8 +20,7 @@ export const Home: FC = () => {
           setCurrentColor((prev) => (prev === 'remy' ? 'perfume' : 'remy'));
         }}
       >
-        Không khả dụng
-        Pong
+        Không khả dụng Pong
         <br />
         {data?.ping}
       </div>

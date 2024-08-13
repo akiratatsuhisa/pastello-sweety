@@ -16,10 +16,18 @@
   word-break: break-word;
 
   &.ck-editor__editable {
-    min-height: 32rem !important;
+    min-height: max(calc(100dvh - 137.22px), 32rem) !important;
+  }
+
+  & h1 {
+    font-size: 3rem;
+    line-height: 1;
   }
 
   & h2 {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+
     &.document-title {
       font-family: 'Oswald';
       font-size: 50px;
@@ -31,6 +39,9 @@
   }
 
   & h3 {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+
     &.category {
       font-family: 'Oswald';
       font-size: 20px;
@@ -49,6 +60,21 @@
       font-weight: bold;
       padding: 0;
     }
+  }
+
+  & h4 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+
+  & h5 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+
+  & h6 {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
   }
 
   & p.info-box {

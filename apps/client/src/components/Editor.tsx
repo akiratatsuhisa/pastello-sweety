@@ -187,7 +187,17 @@ const editorConfig: EditorConfig = {
     supportAllValues: true,
   },
   fontSize: {
-    options: [10, 12, 14, 'default', 18, 20, 24, 30, 36, 48],
+    options: [
+      { title: 'Extra small', model: '0.75rem' },
+      { title: 'Small', model: '0.875rem' },
+      { title: 'Default', model: '1rem' },
+      { title: 'Large', model: '1.125rem' },
+      { title: 'Extra large', model: '1.25rem' },
+      { title: '2XL', model: '1.5rem' },
+      { title: '3XL', model: '1.875rem' },
+      { title: '4XL', model: '2.25rem' },
+      { title: '5XL', model: '3rem' },
+    ],
     supportAllValues: true,
   },
   heading: {

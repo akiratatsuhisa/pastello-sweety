@@ -1,2 +1,3 @@
-export * from './Footer'
-export * from './Typography'
+export * from './Footer';
+export * from './Forms';
+export * from './Typography';

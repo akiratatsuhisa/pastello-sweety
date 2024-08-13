@@ -6433,6 +6433,7 @@ __metadata:
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.5.3"
     usehooks-ts: "npm:^3.1.0"
+    utils: "workspace:^"
     vite: "npm:^5.3.1"
   languageName: unknown
   linkType: soft

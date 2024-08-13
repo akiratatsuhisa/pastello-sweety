@@ -4,8 +4,9 @@ import '@/components/Editor.scss';
 import { useAuth0 } from '@auth0/auth0-react';
 import { FC, ReactNode } from 'react';
 import { Navigate, useRoutes } from 'react-router-dom';
+import { enums } from 'utils';
 
-import { Auth0Role, useUserRole } from '@/hooks';
+import { useUserRole } from '@/hooks';
 import { DefaultBottomBar, DefaultLayout, DefaultTopBar } from '@/layouts';
 import { NotLogged } from '@/pages/Common';
 import { Home } from '@/pages/Home';
@@ -17,7 +18,7 @@ export const AppRoutes: FC = () => {
 
   const authGuard = (
     element: ReactNode,
-    requiredRoles?: Array<Auth0Role>,
+    requiredRoles?: Array<enums.Auth0Role>,
   ): ReactNode => {
     if (!isAuthenticated) {
       return <Navigate to={`/not-logged?returnTo=${window.location.href}`} />;
@@ -82,7 +83,7 @@ export const AppRoutes: FC = () => {
         {
           path: '/posts/:id/editor',
           index: true,
-          element: authGuard(<Posts.Editor />, [Auth0Role.Administrator]),
+          element: authGuard(<Posts.Editor />, [enums.Auth0Role.Administrator]),
         },
       ],
     },
